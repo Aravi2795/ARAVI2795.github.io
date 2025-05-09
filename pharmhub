@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PharmHub App</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 10px;
+    }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>PharmHub Web App</h1>
+
+  <h3>Login</h3>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="loginUser()">Login</button>
+
+  <h3>Save Sample Prescription</h3>
+  <button onclick="savePrescription()">Save Prescription</button>
+
+  <h3>Search Drug</h3>
+  <input id="searchQuery" type="text" placeholder="Enter drug name">
+  <button onclick="searchDrug()">Search</button>
+
+  <div id="output"></div>
+
+  <script>
+    // Firebase config (use your own project config here)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "your-sender-id",
+      appId: "your-app-id"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function loginUser() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          output(`Logged in as: ${userCredential.user.email}`);
+        })
+        .catch(error => {
+          output(`Login error: ${error.message}`);
+        });
+    }
+
+    function savePrescription() {
+      const prescription = {
+        drugName: "Amoxicillin",
+        dosage: "500mg",
+        frequency: "3 times a day",
+        duration: "7 days",
+        instructions: "Take after meals"
+      };
+
+      db.collection("prescriptions").add(prescription)
+        .then(docRef => {
+          output(`Prescription saved with ID: ${docRef.id}`);
+        })
+        .catch(error => {
+          output(`Error saving prescription: ${error.message}`);
+        });
+    }
+
+    function searchDrug() {
+      const query = document.getElementById("searchQuery").value;
+
+      fetch(`https://api.pharmhub.io/drugs?query=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+          output("Drug search results:\n" + JSON.stringify(data, null, 2));
+        })
+        .catch(error => {
+          output(`API fetch error: ${error.message}`);
+        });
+    }
+
+    function output(message) {
+      document.getElementById("output").textContent = message;
+    }
+  </script>
+
+</body>
+</html>
